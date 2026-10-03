@@ -2,6 +2,14 @@
 
 iOS emulator of a Waveshare **ESP32-S3-RGB-Matrix** driver board with a Waveshare **RGB-Matrix-P3-64x32** panel on the HUB75 port. The on-screen name is Matrix. Bundle id `com.raul.MatrixEmu`. Portrait only. iOS 17+, SwiftUI, no third-party packages.
 
+## Download the Mac app
+
+macOS 14 or later, Apple silicon.
+
+[MatrixEmu 1.0 for Mac](https://github.com/rauls4/MatrixEmu/releases/latest/download/MatrixEmu-1.0-macOS.zip)
+
+Unzip the download and open `MatrixEmu`. The first time, macOS blocks it because this copy is signed with a Developer ID but not notarized yet. Control-click the app, choose Open, then Open again. After that it launches with a normal double-click.
+
 This is not QEMU and not an Xtensa LX7 or ESP-IDF emulator. There is no Wi-Fi, Bluetooth, FreeRTOS, or GPIO bitbanging of arbitrary firmware. A real ESP32-S3 application image is accepted or rejected by its header, and one RAM segment is executed as a small bytecode program. The panel is updated by a HUB75 scan model, not by pretending the framebuffer is a memory-mapped display.
 
 ## Board
