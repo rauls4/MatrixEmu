@@ -1,3 +1,4 @@
+<img width="1012" height="904" alt="image" src="https://github.com/user-attachments/assets/c45c29ea-5a97-4300-9772-0a6d8decd361" />
 # MatrixEmu
 
 iOS emulator of a Waveshare **ESP32-S3-RGB-Matrix** driver board with a Waveshare **RGB-Matrix-P3-64x32** panel on the HUB75 port. The on-screen name is Matrix. Bundle id `com.raul.MatrixEmu`. Portrait only. iOS 17+, SwiftUI, no third-party packages.
