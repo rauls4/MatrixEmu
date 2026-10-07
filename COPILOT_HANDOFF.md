@@ -27,3 +27,9 @@ SwiftUI, iOS 17+, no third-party packages. Python tooling in `firmware/` (assemb
 - Never force-push, rewrite pushed history, or delete branches without Raul's explicit OK.
 - Don't commit build output (`build/`, `Build/`, `DerivedData/`, `.gradle/`, `node_modules/`).
 - Write "unknown" rather than guessing.
+
+## 2026-10-07: local-only folders (gitignored)
+- `Archives/MatrixEmu.xcarchive`: com.raul.MatrixEmu 1.0 (1), archived Oct 3, 2026 at 10:33 AM CT (moved from the Desktop).
+- `Signing/MatrixAppleDev.certSigningRequest`: the Apple Developer certificate signing request.
+- `Materials/animation.bin`: from "Desktop/MatrixEmu Materials".
+The Desktop copy of the repo had nothing that wasn't already in git; it's backed up at `~/.pixelpop-move-backups/MatrixEmu-desktop-20261007`.
