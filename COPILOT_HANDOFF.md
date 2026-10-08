@@ -18,7 +18,7 @@ SwiftUI, iOS 17+, no third-party packages. Python tooling in `firmware/` (assemb
 - `preview/` — screenshots for README
 
 ## State / open work
-- Uncommitted on purpose: `MatrixEmu.xcodeproj/xcshareddata/xcschemes/MatrixEmu.xcscheme` is modified locally (Xcode turned off the debugger for Run, launcher set to PosixSpawn). Left uncommitted until Raul says whether he meant it.
+- The shared scheme has the debugger off for Run (launcher PosixSpawn) on purpose: Raul turned it off because it slows builds. Turn it on locally only when you need to debug, and don't commit it back on.
 - Open work: unknown (no TODOs in sources). The new icon isn't in a release build yet.
 
 ## Standing rules for AI agents
