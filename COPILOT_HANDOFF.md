@@ -2,7 +2,7 @@
 
 **What:** iOS (and notarized macOS) SwiftUI emulator of a Waveshare ESP32-S3-RGB-Matrix board driving a 64×32 HUB75 panel. Bundle id `com.raul.MatrixEmu`. Not a real Xtensa/QEMU emulator (see README).
 **Location:** `~/dev/MatrixEmu` · **GitHub:** rauls4/MatrixEmu
-**Branch / HEAD:** `main` @ `410ee58` (2026-10-07, before this doc). Mac 1.0 release is on GitHub Releases.
+**Branch / HEAD:** `main`, see `git log -1` (last updated 2026-10-07 ~10:30 PM CT with the pixel-emu icon commit). Mac 1.0 release is on GitHub Releases (it still ships the old bar-graph icon).
 
 ## Stack
 SwiftUI, iOS 17+, no third-party packages. Python tooling in `firmware/` (assembler, sim, GIF→bin).
@@ -18,8 +18,8 @@ SwiftUI, iOS 17+, no third-party packages. Python tooling in `firmware/` (assemb
 - `preview/` — screenshots for README
 
 ## State / open work
-- Uncommitted on 2026-10-07: `MatrixEmu.xcodeproj/xcshareddata/xcschemes/MatrixEmu.xcscheme` modified (left uncommitted; unknown intent).
-- Open work: unknown (no TODOs in sources).
+- Uncommitted on purpose: `MatrixEmu.xcodeproj/xcshareddata/xcschemes/MatrixEmu.xcscheme` is modified locally (Xcode turned off the debugger for Run, launcher set to PosixSpawn). Left uncommitted until Raul says whether he meant it.
+- Open work: unknown (no TODOs in sources). The new icon isn't in a release build yet.
 
 ## Standing rules for AI agents
 - Keep this doc current after every meaningful change: branch, HEAD sha, state, next steps. Then commit and push.
@@ -33,3 +33,11 @@ SwiftUI, iOS 17+, no third-party packages. Python tooling in `firmware/` (assemb
 - `Signing/MatrixAppleDev.certSigningRequest`: the Apple Developer certificate signing request.
 - `Materials/animation.bin`: from "Desktop/MatrixEmu Materials".
 The Desktop copy of the repo had nothing that wasn't already in git; it's backed up at `~/.pixelpop-move-backups/MatrixEmu-desktop-20261007`.
+
+## 2026-10-07: pixel-emu app icon
+- The rainbow bar-graph icon was replaced with a pixel-art emu drawn on the same LED-dot panel (26x26 LED grid, blue head and neck, brown body, grey legs). All 19 PNGs in `App/Assets.xcassets/AppIcon.appiconset/` plus `preview/app-icon.png` were regenerated at their exact old sizes, as RGB with no alpha. `Contents.json` is unchanged.
+- Below 120 px the unlit LED rings are dropped and the lit LEDs drawn solid so the emu stays readable.
+- Verified: the iOS Simulator and macOS (unsigned) builds both succeeded with no asset-catalog warnings.
+- The old icon files are still in git history (the commit before the icon change).
+- Related: PixelPop's rauls4/PixelPopEmu was copied from this repo at 687738e. It is independent, so changes here don't affect it.
+- SpriteSheet Doctor's test suite uses the local `firmware/` tools when they exist, so give its assistant a heads-up before changing them.
