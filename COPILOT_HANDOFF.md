@@ -19,7 +19,9 @@ SwiftUI, iOS 17+, no third-party packages. Python tooling in `firmware/` (assemb
 
 ## State / open work
 - The shared scheme has the debugger off for Run (launcher PosixSpawn) on purpose: Raul turned it off because it slows builds. Turn it on locally only when you need to debug, and don't commit it back on.
-- Open work: unknown (no TODOs in sources). The new icon isn't in a release build yet.
+- Open work (prioritized, 2026-10-08):
+  1. **Sound on/off toggle.** Raul heard a metronome-like ticking in the app (likely from `App/PanelAudio.swift`) and wants a switch for it. Add a persisted toggle (e.g. `@AppStorage`) in the UI that mutes PanelAudio. Then build, install to /Applications (see the install section), commit, push, and update this doc. Requested through PixelPop on 2026-10-08 and not started yet.
+  2. Nothing else known. The emu icon is installed in /Applications but not in a GitHub release; the 1.0 release still has the old icon.
 
 ## Standing rules for AI agents
 - Keep this doc current after every meaningful change: branch, HEAD sha, state, next steps. Then commit and push.
