@@ -2,15 +2,16 @@
 
 **What:** iOS (and notarized macOS) SwiftUI emulator of a Waveshare ESP32-S3-RGB-Matrix board driving a 64×32 HUB75 panel. Bundle id `com.raul.MatrixEmu`. Not a real Xtensa/QEMU emulator (see README).
 **Location:** `~/dev/MatrixEmu` · **GitHub:** rauls4/MatrixEmu
-**Branch / HEAD:** `main`, see `git log -1` (last updated 2026-10-07 ~10:30 PM CT with the pixel-emu icon commit). Mac 1.0 release is on GitHub Releases (it still ships the old bar-graph icon).
+**Branch / HEAD:** `main`, see `git log -1` (last updated 2026-10-08 ~1:45 PM CT). Mac 1.0 release is on GitHub Releases (it still ships the old bar-graph icon).
 
 ## Stack
 SwiftUI, iOS 17+, no third-party packages. Python tooling in `firmware/` (assembler, sim, GIF→bin).
 
 ## Build / run
 - Xcode: open `MatrixEmu.xcodeproj`, scheme **MatrixEmu** (only target/scheme; verified with `xcodebuild -list`).
-- CLI: `xcodebuild -project MatrixEmu.xcodeproj -scheme MatrixEmu -destination 'generic/platform=iOS Simulator' build` (not run by the handoff author).
-- Firmware tools: `firmware/assemble.py`, `firmware/sim.py`, `firmware/gif_to_bin.py`, `firmware/compile_ino.sh`.
+- CLI (macOS): `xcodebuild -project MatrixEmu.xcodeproj -scheme MatrixEmu -destination 'generic/platform=macOS' -derivedDataPath /tmp/DerivedDataMatrixEmu build` (verified 2026-10-08; Swift macros require sandbox bypass if run under sandboxed agents).
+- CLI (iOS Sim): `xcodebuild -project MatrixEmu.xcodeproj -scheme MatrixEmu -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/DerivedDataMatrixEmu build`.
+- Firmware tools: `firmware/assemble.py`, `firmware/sim.py`, `firmware/gif_to_bin.py`, `firmware/compile_ino.sh` (Python 3.14 standard library verified).
 
 ## Layout
 - `App/` — Swift sources (MatrixMachine, Hub75Scan, ESPImage, LEDPanelView, SketchCompiler, GIF/Text/FlipBook firmwares, samples)
