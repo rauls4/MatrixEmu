@@ -41,3 +41,8 @@ The Desktop copy of the repo had nothing that wasn't already in git; it's backed
 - The old icon files are still in git history (the commit before the icon change).
 - Related: PixelPop's rauls4/PixelPopEmu was copied from this repo at 687738e. It is independent, so changes here don't affect it.
 - SpriteSheet Doctor's test suite uses the local `firmware/` tools when they exist, so give its assistant a heads-up before changing them.
+
+## Installing the Mac app (standing rule since 2026-10-08)
+- Raul's rule: every macOS build goes into `/Applications`. Back up the current copy first, into `Archives/installed-backups/`, which is gitignored.
+- The project turns off signing for macOS builds (`CODE_SIGNING_ALLOWED[sdk=macosx*] = NO`), so a Release build comes out unsigned. After building, sign it: `codesign --force --deep --options runtime --timestamp --sign "Developer ID Application: Raul Silva (JCPDNB5CL5)" /Applications/MatrixEmu.app`, then check it with `spctl -a -vv`.
+- 2026-10-08 9:35 AM CT: installed a Release build that has the pixel-emu icon. It's Developer ID signed, and `spctl` accepts it. It isn't notarized, which is fine for local use. The previous /Applications copy (1.0 (1), ad-hoc signed, old icon) is backed up as `Archives/installed-backups/MatrixEmu-1.0-adhoc-20261008-0935.app`.
