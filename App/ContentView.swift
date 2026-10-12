@@ -9,6 +9,9 @@ import AppKit
 
 struct ContentView: View {
     @StateObject private var model = EmulatorModel()
+    @StateObject private var board = MatrixBoardConnection()
+    @AppStorage("boardHost") private var boardHost = "pixelpop.local"
+    @State private var boardMode = false
     private enum ImportKind {
         case bin, gif, sketch
     }
@@ -42,14 +45,22 @@ struct ContentView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     header
+                    Toggle("Live board", isOn: $boardMode)
+                        .padding(.horizontal, 16)
+                        .onChange(of: boardMode) { _, active in
+                            if active { model.running = false }
+                            else { board.disconnect() }
+                        }
+                    if boardMode { boardConnection }
                     LEDPanelView(
-                        rgb: model.frame,
-                        width: model.controller.width,
-                        height: model.controller.height,
+                        rgb: boardMode ? board.frame : model.frame,
+                        width: boardMode ? 64 : model.controller.width,
+                        height: boardMode ? 32 : model.controller.height,
                         rotation: model.rotation
                     )
                         .aspectRatio(panelAspect, contentMode: .fit)
                         .padding(.horizontal, 8)
+                    if !boardMode {
                     status
                     controllerPicker
                     controls
@@ -65,6 +76,7 @@ struct ContentView: View {
                             .padding(.horizontal, 16)
                     }
                     pinout
+                    }
                 }
                 .padding(.top, 8)
                 .padding(.bottom, 24)
@@ -72,6 +84,7 @@ struct ContentView: View {
         }
         .preferredColorScheme(.dark)
         .onAppear { model.start() }
+        .onDisappear { board.disconnect() }
         .fileImporter(
             isPresented: $importing,
             allowedContentTypes: importContentTypes,
@@ -87,6 +100,24 @@ struct ContentView: View {
         #if os(macOS)
         .frame(minWidth: 440, minHeight: 760)
         #endif
+    }
+
+    private var boardConnection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                TextField("Board address", text: $boardHost)
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit { board.connect(boardHost) }
+                Button(board.connected ? "Disconnect" : "Connect") {
+                    if board.connected { board.disconnect() }
+                    else { board.connect(boardHost) }
+                }
+            }
+            Text(board.status).font(.caption).foregroundStyle(.secondary)
+            Picker("View rotation", selection: $model.rotation) {
+                ForEach(PanelRotation.allCases) { Text($0.label).tag($0) }
+            }
+        }.padding(.horizontal, 16)
     }
 
     private var shareCaption: String {
@@ -170,8 +201,8 @@ struct ContentView: View {
     }
 
     private var panelAspect: CGFloat {
-        let w = CGFloat(max(model.controller.width, 1))
-        let h = CGFloat(max(model.controller.height, 1))
+        let w = CGFloat(boardMode ? 64 : max(model.controller.width, 1))
+        let h = CGFloat(boardMode ? 32 : max(model.controller.height, 1))
         switch model.rotation {
         case .deg90, .deg270:
             return h / w
@@ -723,6 +754,102 @@ struct FlipBookCanvas: View {
                         pixels = p
                     }
             )
+        }
+    }
+}
+
+
+/// Read-only LAN mirror. Canceling discards old host replies before publishing.
+@MainActor
+final class MatrixBoardConnection: ObservableObject {
+    @Published var frame = [UInt8](repeating: 0, count: 64 * 32 * 3)
+    @Published var status = "Enter pixelpop.local or its IP address."
+    @Published var connected = false
+    private var task: Task<Void, Never>?
+    private let session: URLSession = {
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 4
+        config.httpMaximumConnectionsPerHost = 1
+        return URLSession(configuration: config)
+    }()
+
+    static func decode(_ data: Data) -> [UInt8]? {
+        guard data.count == 4096 else { return nil }
+        let bytes = [UInt8](data)
+        var rgb = [UInt8](); rgb.reserveCapacity(6144)
+        for i in stride(from: 0, to: bytes.count, by: 2) {
+            let value = UInt16(bytes[i]) | UInt16(bytes[i + 1]) << 8
+            let r = UInt8((value >> 11) & 31)
+            let g = UInt8((value >> 5) & 63)
+            let b = UInt8(value & 31)
+            rgb.append((r << 3) | (r >> 2))
+            rgb.append((g << 2) | (g >> 4))
+            rgb.append((b << 3) | (b >> 2))
+        }
+        return rgb
+    }
+
+    func disconnect() {
+        task?.cancel(); task = nil
+        connected = false
+        status = "Disconnected"
+    }
+
+    func connect(_ input: String) {
+        disconnect()
+        let text = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let components = URLComponents(string: text.contains("://") ? text : "http://" + text),
+              components.scheme == "http", let host = components.host, !host.isEmpty,
+              components.user == nil, components.password == nil else {
+            status = "Enter a board hostname or IP address."; return
+        }
+        func endpoint(port: Int, path: String) -> URL? {
+            var c = URLComponents(); c.scheme = "http"; c.host = host
+            c.port = port; c.path = path; return c.url
+        }
+        guard let info = endpoint(port: 8081, path: "/info"),
+              let stream = endpoint(port: 8081, path: "/frame.bin"),
+              let fallback = endpoint(port: components.port ?? 80, path: "/matrix.bin") else { return }
+        connected = true; status = "Connecting to " + host
+        frame = [UInt8](repeating: 0, count: 6144)
+        task = Task { [weak self] in
+            guard let self else { return }
+            var useStream = false
+            if let (_, response) = try? await session.data(from: info) {
+                useStream = (response as? HTTPURLResponse)?.statusCode == 200
+            }
+            guard !Task.isCancelled else { return }
+            var sequence: String?
+            var errors = 0
+            while !Task.isCancelled {
+                do {
+                    var url = useStream ? stream : fallback
+                    if useStream, let sequence {
+                        var c = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+                        c.queryItems = [URLQueryItem(name: "since", value: sequence), URLQueryItem(name: "wait", value: "1000")]
+                        url = c.url!
+                    }
+                    let (data, response) = try await session.data(from: url)
+                    guard !Task.isCancelled else { return }
+                    guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+                    if http.statusCode == 304 && useStream {
+                        status = "Connected to " + host + " · unchanged frame"
+                    } else {
+                        guard http.statusCode == 200, let rgb = Self.decode(data) else { throw URLError(.cannotDecodeContentData) }
+                        frame = rgb
+                        sequence = http.value(forHTTPHeaderField: "X-Frame-Seq")
+                        status = "Connected to " + host + (useStream ? " · live frame server" : " · matrix frame")
+                    }
+                    errors = 0
+                    try await Task.sleep(nanoseconds: useStream && sequence != nil ? 20_000_000 : 100_000_000)
+                } catch {
+                    guard !Task.isCancelled else { return }
+                    errors += 1
+                    status = "Connection failed: " + error.localizedDescription + " · retrying"
+                    if useStream && errors >= 3 { useStream = false; sequence = nil }
+                    try? await Task.sleep(nanoseconds: 1_000_000_000)
+                }
+            }
         }
     }
 }

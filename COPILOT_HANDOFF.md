@@ -1,3 +1,21 @@
+# MatrixEmu handover
+
+2026-10-12: Raul explicitly requested adding a connection to MatrixEmu for
+pixelpop.local minimal TestSuite firmware. Read-only native Live board mode
+added to ContentView; main emulator pauses, sample/editor controls hidden,
+rotation retained. FrameTap8081 discovery/long-poll with matrix.bin fallback,
+RGB565LE strict4096-byte decode, cancellation and retry. Local network privacy
+and local HTTP permission added. Mac Release universal and iOS Simulator builds PASS. Production-client fixture
+tests PASS: RGB565 primaries, bad length, invalid credential URL, HTTP fallback,
+and disconnect cancellation. Installed /Applications/MatrixEmu.app; previous
+copy backed up Archives/installed-backups/MatrixEmu-before-board-20261012-102123.app.
+Developer ID signed, signature verification PASS, Gatekeeper accepted (Developer ID).
+Notarization not performed. Launched; native UI verified Live board toggle,
+pixelpop.local address, Connect button and rotation. Board connection still pending.
+No board writes. Commit/push NOT performed: automatic approval review rejected
+publication because remote/branch authorization is unverified. Ask Raul before push.
+Preexisting untracked CLAUDE.md retained. No firmware Python tool changes.
+
 # Copilot Handoff — MatrixEmu
 
 **What:** iOS (and notarized macOS) SwiftUI emulator of a Waveshare ESP32-S3-RGB-Matrix board driving a 64×32 HUB75 panel. Bundle id `com.raul.MatrixEmu`. Not a real Xtensa/QEMU emulator (see README).
